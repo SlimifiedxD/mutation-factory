@@ -34,7 +34,7 @@ public class CreatureItemStack {
                 .withTag(LEVEL_TAG, creature.getLevel())
                 .withTag(MALE_TAG, creature.isMale())
                 .withLore(
-                        Component.text("Level: ").append(Component.text(creature.getLevel()))
+                        Component.text("Level: ").append(Component.text(creature.getLevel()).color(NamedTextColor.YELLOW))
                                 .decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE)
                                 .colorIfAbsent(NamedTextColor.WHITE),
                         Component.text("Gender: ")
