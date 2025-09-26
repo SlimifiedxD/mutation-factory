@@ -49,19 +49,21 @@ public class Creature extends EntityCreature {
                             if (!(event.getEntity() instanceof final Player player)) {
                                 return;
                             }
-                            this.damage(Damage.fromPlayer(player, 0));
-                            this.timesHit++;
-                            if (this.timesHit == level) {
-                                this.tamed = true;
-                                player.sendMessage(Component.text("IT WAS TAMED!"));
-                                player.getInventory().addItemStack(CreatureItemStack.toItem(this));
-                                this.remove();
+                            if (!this.tamed) {
+                                this.damage(Damage.fromPlayer(player, 0));
+                                this.timesHit++;
+                                if (this.timesHit == level) {
+                                    this.tamed = true;
+                                    player.sendMessage(Component.text("IT WAS TAMED!"));
+                                    player.getInventory().addItemStack(CreatureItemStack.toItem(this));
+                                    this.remove();
+                                }
+                            } else {
+                                player.openInventory(new CreatureInventory(this));
                             }
                         })
                         .filter(event ->
                                 event.getTarget() == this && event.getEntity() instanceof Player)
-                        .expireWhen(event ->
-                                event.getTarget() == this && this.tamed)
                         .build();
 
         this.creatureInteractListener = EventListener.builder(PlayerEntityInteractEvent.class)
@@ -71,7 +73,7 @@ public class Creature extends EntityCreature {
                         player.getInventory().addItemStack(CreatureItemStack.toItem(this));
                         this.remove();
                     } else {
-                        player.openInventory(new CreatureInventory(this));
+                        // TODO: BREEDING
                     }
                 })
                 .filter(event ->
