@@ -3,6 +3,7 @@ package org.slimecraft.mutationfactory;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.minestom.server.component.DataComponents;
 import net.minestom.server.entity.EntityType;
@@ -17,8 +18,10 @@ public class CreatureItemStack {
     private static final Tag<@NotNull String> TYPE_TAG = Tag.String("type");
     private static final Tag<@NotNull String> SPECIES_TAG = Tag.String("species");
     private static final Tag<@NotNull Integer> LEVEL_TAG = Tag.Integer("level");
+    private static final Tag<@NotNull Boolean> MALE_TAG = Tag.Boolean("male");
 
-    private CreatureItemStack() {}
+    private CreatureItemStack() {
+    }
 
     public static ItemStack toItem(Creature creature) {
         Key.key(creature.getEntityType().key().asString() + "_spawn_egg");
@@ -29,15 +32,22 @@ public class CreatureItemStack {
                 .withTag(TYPE_TAG, creature.getEntityType().key().asString())
                 .withTag(SPECIES_TAG, creature.getSpeciesName())
                 .withTag(LEVEL_TAG, creature.getLevel())
+                .withTag(MALE_TAG, creature.isMale())
                 .withLore(
-                        Component.text(creature.getLevel())
+                        Component.text("Level: ").append(Component.text(creature.getLevel()))
                                 .decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE)
-                                .colorIfAbsent(NamedTextColor.WHITE)
-                );
+                                .colorIfAbsent(NamedTextColor.WHITE),
+                        Component.text("Gender: ")
+                                .append(
+                                        creature.isMale()
+                                                ? Component.text("Male").color(TextColor.fromHexString("#31ddf7"))
+                                                : Component.text("Female").color(TextColor.fromHexString("#ff2bf8")))
+                                .decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE)
+                                .colorIfAbsent(NamedTextColor.WHITE));
     }
 
     public static Creature toCreature(ItemStack item) {
-        return new Creature(EntityType.fromKey(item.getTag(TYPE_TAG)), item.getTag(SPECIES_TAG), item.getTag(LEVEL_TAG));
+        return new Creature(EntityType.fromKey(item.getTag(TYPE_TAG)), item.getTag(SPECIES_TAG), item.getTag(LEVEL_TAG), item.getTag(MALE_TAG));
     }
 
     public static boolean isCreatureItem(ItemStack item) {

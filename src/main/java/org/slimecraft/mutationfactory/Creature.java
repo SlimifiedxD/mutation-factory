@@ -24,6 +24,7 @@ public class Creature extends EntityCreature {
     private final int level;
     private int timesHit;
     private boolean tamed;
+    private boolean male;
     private EventListener<? extends @NotNull InstanceEvent> tameListener;
     private EventListener<? extends @NotNull InstanceEvent> creatureInteractListener;
 
@@ -31,12 +32,14 @@ public class Creature extends EntityCreature {
         super(entityType);
         this.speciesName = speciesName;
         this.level = random.nextInt(Config.MIN_LEVEL, Config.MAX_LEVEL);
+        this.male = random.nextBoolean();
     }
 
-    public Creature(EntityType entityType, String speciesName, int level) {
+    public Creature(EntityType entityType, String speciesName, int level, boolean male) {
         super(entityType);
         this.speciesName = speciesName;
         this.level = level;
+        this.male = male;
         this.tamed = true;
     }
 
@@ -121,5 +124,9 @@ public class Creature extends EntityCreature {
 
     public int getLevel() {
         return this.level;
+    }
+
+    public boolean isMale() {
+        return this.male;
     }
 }
