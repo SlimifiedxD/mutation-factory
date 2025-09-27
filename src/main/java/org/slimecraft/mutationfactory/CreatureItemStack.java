@@ -12,8 +12,6 @@ import net.minestom.server.item.Material;
 import net.minestom.server.tag.Tag;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Random;
-
 public class CreatureItemStack {
     private static final Tag<@NotNull String> TYPE_TAG = Tag.String("type");
     private static final Tag<@NotNull String> SPECIES_TAG = Tag.String("species");
@@ -33,6 +31,7 @@ public class CreatureItemStack {
                 .withTag(SPECIES_TAG, creature.getSpeciesName())
                 .withTag(LEVEL_TAG, creature.getLevel())
                 .withTag(MALE_TAG, creature.isMale())
+                .withTag(Creature.BREEDING_TIME, creature.getBreedTime())
                 .withLore(
                         Component.text("Level: ").append(Component.text(creature.getLevel()).color(NamedTextColor.YELLOW))
                                 .decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE)
@@ -47,7 +46,7 @@ public class CreatureItemStack {
     }
 
     public static Creature toCreature(ItemStack item) {
-        return new Creature(EntityType.fromKey(item.getTag(TYPE_TAG)), item.getTag(SPECIES_TAG), item.getTag(LEVEL_TAG), item.getTag(MALE_TAG));
+        return new Creature(EntityType.fromKey(item.getTag(TYPE_TAG)), item.getTag(SPECIES_TAG), item.getTag(LEVEL_TAG), item.getTag(MALE_TAG), item.getTag(Creature.BREEDING_TIME));
     }
 
     public static boolean isCreatureItem(ItemStack item) {

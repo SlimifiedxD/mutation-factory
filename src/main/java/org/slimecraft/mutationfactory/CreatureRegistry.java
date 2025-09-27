@@ -12,7 +12,7 @@ public class CreatureRegistry {
     private static final Random RANDOM = new Random();
 
     static {
-        CREATURES.put("cow", () -> new Creature(EntityType.COW, "Cow", RANDOM));
+        CREATURES.put("cow", () -> new Creature(EntityType.COW, "Cow", RANDOM, 10));
     }
 
     public static Creature of(String identifier) {
