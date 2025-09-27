@@ -100,13 +100,35 @@ public class Creature extends EntityCreature {
      */
     public static Creature wild(
             @NotNull Species species,
+            int breedTime,
             @NotNull Stat health,
             @NotNull Stat melee,
             @NotNull Stat speed,
             @NotNull Consumer<Creature> configurator
     ) {
-        return builder(species, 0, health, Stat.EMPTY, Stat.EMPTY, Stat.EMPTY, Stat.EMPTY, melee, speed, Collections.emptyList())
+        return builder(species, breedTime, health, Stat.EMPTY, Stat.EMPTY, Stat.EMPTY, Stat.EMPTY, melee, speed, Collections.emptyList())
                 .configurator(configurator)
+                .build();
+    }
+
+    public static Creature tamed(
+            @NotNull Species species,
+            int breedTime,
+            Integer level,
+            Boolean male,
+            @NotNull Stat health,
+            @NotNull Stat stamina,
+            @NotNull Stat oxygen,
+            @NotNull Stat food,
+            @NotNull Stat weight,
+            @NotNull Stat melee,
+            @NotNull Stat speed,
+            List<Stat> additionalStats
+    ) {
+        return builder(species, breedTime, health, stamina, oxygen, food, weight, melee, speed, additionalStats)
+                .tamed(true)
+                .level(level)
+                .male(male)
                 .build();
     }
 
@@ -241,23 +263,26 @@ public class Creature extends EntityCreature {
                                 if (creature == this) {
                                     return;
                                 }
-                                if (this.male && !creature.isMale() || creature.isMale() && !this.male) {
+                                if (this.species.equals(creature.getSpecies()) && (this.male != creature.isMale())) {
                                     this.setLeashHolder(creature);
                                     this.scheduler().submitTask(() -> {
                                         if (creature.getTag(BREEDING_TIME) == 0) {
-                                            /*final Creature newCreature = new Creature(
-                                                    this.entityType,
-                                                    this.speciesName,
-                                                    this.level + 100,
-                                                    true,
-                                                    this.male,
+                                            final Creature baby = tamed(
+                                                    this.species,
                                                     this.breedTime,
-                                                    this.baseDamage,
-                                                    null
+                                                    this.level + 100,
+                                                    this.male,
+                                                    this.health,
+                                                    this.stamina,
+                                                    this.oxygen,
+                                                    this.food,
+                                                    this.weight,
+                                                    this.melee,
+                                                    this.speed,
+                                                    this.additionalStats
                                             );
-                                            newCreature.getAttribute(Attribute.SCALE).setBaseValue(0.1);
-                                            newCreature.setInstance(this.instance, this.position.withZ(z -> z - 2));*/
-                                            // TODO: CREATE STATIC tamed() function
+                                            baby.getAttribute(Attribute.SCALE).setBaseValue(0.1);
+                                            baby.setInstance(this.instance, this.position.withZ(z -> z - 2));
                                             creature.setLeashHolder(null);
                                             this.setLeashHolder(null);
                                             return TaskSchedule.stop();

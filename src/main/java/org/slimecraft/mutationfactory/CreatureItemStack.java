@@ -64,12 +64,13 @@ public class CreatureItemStack {
                                 .colorIfAbsent(NamedTextColor.WHITE));
     }
 
-    // TODO: FIX STATS BEING EMPTY
     public static Creature toCreature(ItemStack item) {
         return Creature
-                .builder(
+                .tamed(
                         new Species(EntityType.fromKey(item.getTag(ENTITY_TYPE_TAG)), item.getTag(SPECIES_NAME_TAG)),
                         item.getTag(Creature.BREEDING_TIME),
+                        item.getTag(LEVEL_TAG),
+                        item.getTag(MALE_TAG),
                         item.getTag(HEALTH_TAG),
                         item.getTag(STAMINA_TAG),
                         item.getTag(OXYGEN_TAG),
@@ -78,11 +79,7 @@ public class CreatureItemStack {
                         item.getTag(MELEE_TAG),
                         item.getTag(SPEED_TAG),
                         Collections.emptyList()
-                )
-                .level(item.getTag(LEVEL_TAG))
-                .male(item.getTag(MALE_TAG))
-                .tamed(true)
-                .build();
+                );
     }
 
     public static boolean isCreatureItem(ItemStack item) {

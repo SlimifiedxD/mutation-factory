@@ -17,6 +17,7 @@ public class CreatureRegistry {
     private static final Supplier<Creature> BULL = () -> Creature
             .wild(
                     Species.BULL,
+                    30,
                     new Stat(100),
                     new Stat(100),
                     new Stat(0.8F),
@@ -32,6 +33,7 @@ public class CreatureRegistry {
     private static final Supplier<Creature> JUMBUCK = () -> Creature
             .wild(
                     Species.JUMBUCK,
+                    10,
                     new Stat(100),
                     new Stat(100),
                     new Stat(1.2F),
