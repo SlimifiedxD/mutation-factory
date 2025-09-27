@@ -19,6 +19,13 @@ public class CreatureItemStack {
     private static final Tag<@NotNull String> SPECIES_NAME_TAG = Tag.String("species");
     private static final Tag<@NotNull Integer> LEVEL_TAG = Tag.Integer("level");
     private static final Tag<@NotNull Boolean> MALE_TAG = Tag.Boolean("male");
+    private static final Tag<@NotNull Stat> HEALTH_TAG = Tag.Float("health").map(Stat::new, Stat::getCurrentValue);
+    private static final Tag<@NotNull Stat> STAMINA_TAG = Tag.Float("stamina").map(Stat::new, Stat::getCurrentValue);
+    private static final Tag<@NotNull Stat> OXYGEN_TAG = Tag.Float("oxygen").map(Stat::new, Stat::getCurrentValue);
+    private static final Tag<@NotNull Stat> FOOD_TAG = Tag.Float("food").map(Stat::new, Stat::getCurrentValue);
+    private static final Tag<@NotNull Stat> WEIGHT_TAG = Tag.Float("weight").map(Stat::new, Stat::getCurrentValue);
+    private static final Tag<@NotNull Stat> MELEE_TAG = Tag.Float("melee").map(Stat::new, Stat::getCurrentValue);
+    private static final Tag<@NotNull Stat> SPEED_TAG = Tag.Float("speed").map(Stat::new, Stat::getCurrentValue);
 
     private CreatureItemStack() {
     }
@@ -34,6 +41,13 @@ public class CreatureItemStack {
                 .withTag(LEVEL_TAG, creature.getLevel())
                 .withTag(MALE_TAG, creature.isMale())
                 .withTag(Creature.BREEDING_TIME, creature.getBreedTime())
+                .withTag(HEALTH_TAG, creature.getHealthStat())
+                .withTag(STAMINA_TAG, creature.getStamina())
+                .withTag(OXYGEN_TAG, creature.getOxygen())
+                .withTag(FOOD_TAG, creature.getFood())
+                .withTag(WEIGHT_TAG, creature.getWeight())
+                .withTag(MELEE_TAG, creature.getMelee())
+                .withTag(SPEED_TAG, creature.getSpeed())
                 .withLore(
                         Component.text("Level: ").append(Component.text(creature.getLevel()).color(NamedTextColor.YELLOW))
                                 .decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE)
@@ -53,13 +67,13 @@ public class CreatureItemStack {
                 .builder(
                         new Species(EntityType.fromKey(item.getTag(ENTITY_TYPE_TAG)), item.getTag(SPECIES_NAME_TAG)),
                         item.getTag(Creature.BREEDING_TIME),
-                        Stat.EMPTY,
-                        Stat.EMPTY,
-                        Stat.EMPTY,
-                        Stat.EMPTY,
-                        Stat.EMPTY,
-                        Stat.EMPTY,
-                        Stat.EMPTY,
+                        item.getTag(HEALTH_TAG),
+                        item.getTag(STAMINA_TAG),
+                        item.getTag(OXYGEN_TAG),
+                        item.getTag(FOOD_TAG),
+                        item.getTag(WEIGHT_TAG),
+                        item.getTag(MELEE_TAG),
+                        item.getTag(SPEED_TAG),
                         Collections.emptyList()
                 )
                 .level(item.getTag(LEVEL_TAG))
