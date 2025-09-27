@@ -1,5 +1,6 @@
 package org.slimecraft.mutationfactory;
 
+import net.kyori.adventure.text.Component;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.LivingEntity;
@@ -10,6 +11,7 @@ import net.minestom.server.event.EventNode;
 import net.minestom.server.event.entity.EntityAttackEvent;
 import net.minestom.server.event.player.AsyncPlayerConfigurationEvent;
 import net.minestom.server.event.player.PlayerBlockInteractEvent;
+import net.minestom.server.event.player.PlayerDeathEvent;
 import net.minestom.server.event.player.PlayerSpawnEvent;
 import net.minestom.server.instance.InstanceContainer;
 import net.minestom.server.instance.LightingChunk;
@@ -53,6 +55,18 @@ public class MapManager {
                 return;
             }
             livingEntity.damage(Damage.fromEntity(creature, creature.getMelee().getBaseValue()));
+        });
+        this.node.addListener(PlayerDeathEvent.class, event -> {
+            final Player player = event.getPlayer();
+            final Damage source = player.getLastDamageSource();
+
+            if (source == null) {
+                event.setChatMessage(player.getName().append(Component.text(" was killed due to unforeseen events")));
+                return;
+            }
+            if (source.getAttacker() instanceof final Creature creature) {
+                event.setChatMessage(player.getName().append(Component.text(" was killed by a ").append(Component.text(creature.getSpecies().name()))));
+            }
         });
     }
 
