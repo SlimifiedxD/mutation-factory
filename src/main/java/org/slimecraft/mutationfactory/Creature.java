@@ -17,11 +17,11 @@ import net.minestom.server.instance.Instance;
 import net.minestom.server.tag.Tag;
 import net.minestom.server.timer.TaskSchedule;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 public class Creature extends EntityCreature {
     public static final Tag<@NotNull Integer> BREEDING_TIME = Tag.Integer("breeding_time");
@@ -37,32 +37,24 @@ public class Creature extends EntityCreature {
     private EventListener<? extends @NotNull InstanceEvent> tameListener;
     private EventListener<? extends @NotNull InstanceEvent> creatureInteractListener;
 
-    public Creature(EntityType entityType, String speciesName, Random random, int breedTime, float damage, Consumer<Creature> configurator, Function<Creature, EntityAIGroup> aiGroupFunction) {
+    public Creature(EntityType entityType, String speciesName, @Nullable Integer level, @Nullable Boolean male, int breedTime, float damage, @Nullable Consumer<Creature> configurator) {
         super(entityType);
+        final Random random = new Random();
         this.entityType = entityType;
         this.speciesName = speciesName;
-        this.level = Config.MIN_LEVEL + (int) (Math.pow(random.nextDouble(), 5) * (Config.MAX_LEVEL - Config.MIN_LEVEL + 1));
-        this.male = random.nextBoolean();
+        this.level = Objects.requireNonNullElseGet(level, () ->
+                Config.MIN_LEVEL + (int) (Math.pow(random.nextDouble(), 5) * (Config.MAX_LEVEL - Config.MIN_LEVEL + 1)));
+        this.male = Objects.requireNonNullElseGet(male, random::nextBoolean);
         this.breedTime = breedTime;
         this.damage = damage;
-        this.getAttribute(Attribute.MOVEMENT_SPEED).setBaseValue(0.5);
-        this.setTag(BREEDING_TIME, this.breedTime);
-        configurator.accept(this);
+        if (configurator != null) {
+            configurator.accept(this);
+        }
 
-        final EntityAIGroup aiGroup = aiGroupFunction.apply(this);
+        final EntityAIGroup aiGroup = new EntityAIGroup();
         aiGroup.getGoalSelectors().add(new RandomStrollGoal(this, 20));
         this.addAIGroup(aiGroup);
-    }
-
-    public Creature(EntityType entityType, String speciesName, int level, boolean male, int breedTime, float damage) {
-        super(entityType);
-        this.entityType = entityType;
-        this.speciesName = speciesName;
-        this.level = level;
-        this.male = male;
-        this.tamed = true;
-        this.breedTime = breedTime;
-        this.damage = damage;
+        this.getAttribute(Attribute.MOVEMENT_SPEED).setBaseValue(0.5);
         this.setTag(BREEDING_TIME, this.breedTime);
     }
 
@@ -120,7 +112,8 @@ public class Creature extends EntityCreature {
                                                     this.level + 100,
                                                     this.male,
                                                     this.breedTime,
-                                                    this.damage
+                                                    this.damage,
+                                                    null
                                                     );
                                             newCreature.getAttribute(Attribute.SCALE).setBaseValue(0.1);
                                             newCreature.setInstance(this.instance, this.position.withZ(z -> z - 2));
