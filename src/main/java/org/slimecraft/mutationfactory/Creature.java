@@ -36,7 +36,7 @@ public class Creature extends EntityCreature {
         super(entityType);
         this.entityType = entityType;
         this.speciesName = speciesName;
-        this.level = Config.MIN_LEVEL + (int) (Math.pow(random.nextDouble(), 3) * Config.MAX_LEVEL - Config.MIN_LEVEL + 1);
+        this.level = Config.MIN_LEVEL + (int) (Math.pow(random.nextDouble(), 5) * Config.MAX_LEVEL - Config.MIN_LEVEL + 1);
         this.male = random.nextBoolean();
         this.breedTime = breedTime;
     }
