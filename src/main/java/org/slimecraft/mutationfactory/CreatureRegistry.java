@@ -40,9 +40,27 @@ public class CreatureRegistry {
                     creature -> {}
             );
 
+    private static final Supplier<Creature> SCAVENGER = () -> Creature
+            .wild(
+                    Species.SCAVENGER,
+                    60,
+                    new Stat(20),
+                    new Stat(20),
+                    new Stat(1F),
+                    creature -> {
+                        final EntityAIGroup aiGroup = new EntityAIGroup();
+                        aiGroup.getGoalSelectors().add(new MeleeAttackGoal(creature, 0.5, 10, TimeUnit.SERVER_TICK));
+                        aiGroup.getTargetSelectors().add(new LastEntityDamagerTarget(creature, 15));
+                        aiGroup.getTargetSelectors().add(new ClosestEntityTarget(creature, 15, entity ->
+                                entity instanceof Player || entity instanceof Creature target && !target.getSpecies().equals(creature.getSpecies())));
+                        creature.addAIGroup(aiGroup);
+                    }
+            );
+
     static {
         CREATURES.put("bull", BULL);
         CREATURES.put("sheep", JUMBUCK);
+        CREATURES.put("scavenger", SCAVENGER);
     }
 
     public static Creature of(String identifier) {
