@@ -39,6 +39,7 @@ public class Creature extends EntityCreature {
         this.level = Config.MIN_LEVEL + (int) (Math.pow(random.nextDouble(), 5) * (Config.MAX_LEVEL - Config.MIN_LEVEL + 1));
         this.male = random.nextBoolean();
         this.breedTime = breedTime;
+        this.setTag(BREEDING_TIME, this.breedTime);
     }
 
     public Creature(EntityType entityType, String speciesName, int level, boolean male, int breedTime) {
