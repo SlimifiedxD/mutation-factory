@@ -22,6 +22,12 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
+/**
+ * Represents a creature that can spawn in-game. Creatures can range from everyday animals to mythological
+ * beings. The class favors composition over inheritance, hence the class not being abstract; examples are the
+ * {@link Consumer} configurer, and the many {@link Stat}s required in the {@link Builder} constructor.
+ * The class is suffering from separation of concerns, hence its heinous length.
+ */
 public class Creature extends EntityCreature {
     public static final Tag<@NotNull Integer> BREEDING_TIME = Tag.Integer("breeding_time");
 
@@ -44,7 +50,7 @@ public class Creature extends EntityCreature {
 
     /**
      * Construct a creature from the given {@link Builder}.
-     * Private because instances are only created through the builder due to the
+     * The constructor is private because instances are only created through the builder due to the
      * complexity of the class.
      */
     private Creature(Builder builder) {
@@ -72,6 +78,10 @@ public class Creature extends EntityCreature {
         this.initializeDefaults();
     }
 
+    /**
+     * Initialize the defaults of this creature; this includes both its default behaviour and
+     * turning all its {@link Stat}s into attributes.
+     */
     private void initializeDefaults() {
         final EntityAIGroup aiGroup = new EntityAIGroup();
         aiGroup.getGoalSelectors().add(new RandomStrollGoal(this, 20));
@@ -82,6 +92,10 @@ public class Creature extends EntityCreature {
         this.setTag(BREEDING_TIME, this.breedTime);
     }
 
+    /**
+     * Construct a wild creature. Many stats/additional stats are omitted because a wild creature cannot use stats
+     * other than health, melee and speed. A configurator is required, but can be empty; it is only for additional behaviour.
+     */
     public static Creature wild(
             @NotNull Species species,
             @NotNull Stat health,
@@ -94,6 +108,10 @@ public class Creature extends EntityCreature {
                 .build();
     }
 
+    /**
+     * Construct a {@link Builder}. This exists for style purposes; the behaviour is no different
+     * from if one were to directly instantiate {@link Builder}.
+     */
     public static Builder builder(
             @NotNull Species species,
             int breedTime,
@@ -109,6 +127,10 @@ public class Creature extends EntityCreature {
         return new Builder(species, breedTime, health, stamina, oxygen, food, weight, melee, speed, additionalStats);
     }
 
+    /**
+     * A helper class for constructing {@link Creature}s. The complexity of the class
+     * warrants the use of a builder for required and optional values.
+     */
     public static final class Builder {
         private final Species species;
         private final int breedTime;
