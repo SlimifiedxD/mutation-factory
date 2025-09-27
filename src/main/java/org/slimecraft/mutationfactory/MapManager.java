@@ -49,7 +49,7 @@ public class MapManager {
         });
         this.rootInstance.setChunkSupplier(LightingChunk::new);
         MinecraftServer.getSchedulerManager().buildTask(() -> {
-            final Creature creature = CreatureRegistry.of("cow");
+            final Creature creature = CreatureRegistry.random();
             creature.setInstance(this.rootInstance, new Pos(this.random.nextInt(0, 50), 50, this.random.nextInt(0, 50)));
         })
                 .repeat(TaskSchedule.seconds(1))
