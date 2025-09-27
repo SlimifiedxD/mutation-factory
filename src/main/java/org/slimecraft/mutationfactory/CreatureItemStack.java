@@ -40,7 +40,7 @@ public class CreatureItemStack {
                 .withTag(SPECIES_NAME_TAG, creature.getSpecies().name())
                 .withTag(LEVEL_TAG, creature.getLevel())
                 .withTag(MALE_TAG, creature.isMale())
-                .withTag(Creature.BREEDING_TIME, creature.getBreedTime())
+                .withTag(Creature.BREEDING_TIME_REMAINING, creature.getBreedTime())
                 .withTag(HEALTH_TAG, creature.getHealthStat())
                 .withTag(STAMINA_TAG, creature.getStamina())
                 .withTag(OXYGEN_TAG, creature.getOxygen())
@@ -68,7 +68,7 @@ public class CreatureItemStack {
         return Creature
                 .tamed(
                         new Species(EntityType.fromKey(item.getTag(ENTITY_TYPE_TAG)), item.getTag(SPECIES_NAME_TAG)),
-                        item.getTag(Creature.BREEDING_TIME),
+                        item.getTag(Creature.BREEDING_TIME_REMAINING),
                         item.getTag(LEVEL_TAG),
                         item.getTag(MALE_TAG),
                         item.getTag(HEALTH_TAG),

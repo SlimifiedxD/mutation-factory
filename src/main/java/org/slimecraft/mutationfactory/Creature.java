@@ -6,16 +6,10 @@ import net.minestom.server.entity.*;
 import net.minestom.server.entity.ai.EntityAIGroup;
 import net.minestom.server.entity.ai.goal.RandomStrollGoal;
 import net.minestom.server.entity.attribute.Attribute;
-import net.minestom.server.entity.damage.Damage;
 import net.minestom.server.entity.metadata.display.AbstractDisplayMeta;
 import net.minestom.server.entity.metadata.display.TextDisplayMeta;
-import net.minestom.server.event.EventListener;
-import net.minestom.server.event.entity.EntityAttackEvent;
-import net.minestom.server.event.player.PlayerEntityInteractEvent;
-import net.minestom.server.event.trait.InstanceEvent;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.tag.Tag;
-import net.minestom.server.timer.TaskSchedule;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -29,7 +23,7 @@ import java.util.function.Consumer;
  * The class is suffering from separation of concerns, hence its heinous length.
  */
 public class Creature extends EntityCreature {
-    public static final Tag<@NotNull Integer> BREEDING_TIME = Tag.Integer("breeding_time");
+    public static final Tag<@NotNull Integer> BREEDING_TIME_REMAINING = Tag.Integer("breeding_time");
 
     private final Species species;
     private final int level;
@@ -45,8 +39,7 @@ public class Creature extends EntityCreature {
     private final Stat melee;
     private final Stat speed;
     private final List<Stat> additionalStats;
-    private EventListener<? extends @NotNull InstanceEvent> tameListener;
-    private EventListener<? extends @NotNull InstanceEvent> creatureInteractListener;
+    private final CreatureService creatureService;
 
     /**
      * Construct a creature from the given {@link Builder}.
@@ -56,6 +49,7 @@ public class Creature extends EntityCreature {
     private Creature(Builder builder) {
         super(builder.species.entityType());
         final Random random = new Random();
+        this.creatureService = new CreatureService(this);
         this.species = builder.species;
         this.level = Objects.requireNonNullElseGet(builder.level, () ->
                 Config.MIN_LEVEL + (int) (Math.pow(random.nextDouble(), 5) * (Config.MAX_LEVEL - Config.MIN_LEVEL + 1)));
@@ -91,7 +85,7 @@ public class Creature extends EntityCreature {
         this.getAttribute(Attribute.MOVEMENT_SPEED).setBaseValue(this.speed.getBaseValue());
         this.getAttribute(Attribute.MAX_HEALTH).setBaseValue(this.health.getBaseValue());
         this.getAttribute(Attribute.ATTACK_DAMAGE).setBaseValue(this.melee.getBaseValue());
-        this.setTag(BREEDING_TIME, this.breedTime);
+        this.setTag(BREEDING_TIME_REMAINING, this.breedTime);
     }
 
     /**
@@ -219,140 +213,22 @@ public class Creature extends EntityCreature {
         }
     }
 
-    private void listeners() {
-        this.tameListener = EventListener.builder(EntityAttackEvent.class)
-                .handler(event -> {
-                    if (!(event.getEntity() instanceof final Player player)) {
-                        return;
-                    }
-                    if (!this.tamed) {
-                        this.damage(Damage.fromPlayer(player, 0));
-                        this.timesHit++;
-                        if (this.timesHit == level) {
-                            this.tamed = true;
-                            player.sendMessage(Component.text("IT WAS TAMED!"));
-                            player.getInventory().addItemStack(CreatureItemStack.toItem(this));
-                            this.remove();
-                        }
-                    } else {
-                        player.openInventory(new CreatureInventory(this));
-                    }
-                })
-                .filter(event ->
-                        event.getTarget() == this && event.getEntity() instanceof Player)
-                .build();
-
-        this.creatureInteractListener = EventListener.builder(PlayerEntityInteractEvent.class)
-                .handler(event -> {
-                    final Player player = event.getPlayer();
-                    if (player.isSneaking()) {
-                        player.getInventory().addItemStack(CreatureItemStack.toItem(this));
-                        this.remove();
-                    } else {
-                        if (this.getLeashHolder() != null) {
-                            this.setLeashHolder(null);
-                            return;
-                        }
-                        this.setLeashHolder(player);
-                        final Set<Entity> leashed = player.getLeashedEntities();
-                        if (leashed.size() == 2) {
-                            leashed.forEach(entity -> {
-                                if (!(entity instanceof final Creature creature)) {
-                                    return;
-                                }
-                                if (creature == this) {
-                                    return;
-                                }
-                                if (this.species.equals(creature.getSpecies()) && (this.male != creature.isMale())) {
-                                    this.setLeashHolder(creature);
-                                    this.scheduler().submitTask(() -> {
-                                        if (creature.getTag(BREEDING_TIME) == 0) {
-                                            final Creature baby = tamed(
-                                                    this.species,
-                                                    this.breedTime,
-                                                    this.level + 100,
-                                                    this.male,
-                                                    this.health,
-                                                    this.stamina,
-                                                    this.oxygen,
-                                                    this.food,
-                                                    this.weight,
-                                                    this.melee,
-                                                    this.speed,
-                                                    this.additionalStats
-                                            );
-                                            baby.getAttribute(Attribute.SCALE).setBaseValue(0.1);
-                                            baby.setInstance(this.instance, this.position.withZ(z -> z - 2));
-                                            creature.setLeashHolder(null);
-                                            this.setLeashHolder(null);
-                                            return TaskSchedule.stop();
-                                        }
-                                        creature.updateTag(BREEDING_TIME, remaining -> remaining - 1);
-                                        return TaskSchedule.seconds(1);
-                                    });
-                                }
-                            });
-                            player.getLeashedEntities().forEach(entity -> {
-                                if (!(entity instanceof final Creature creature)) {
-                                    return;
-                                }
-                                creature.setLeashHolder(null);
-                            });
-                        }
-                    }
-                })
-                .filter(event ->
-                        event.getTarget() == this && this.tamed && event.getHand() == PlayerHand.MAIN)
-                .build();
-
-        this.instance.eventNode().addListener(this.tameListener);
-        this.instance.eventNode().addListener(this.creatureInteractListener);
-    }
-
-    private void removeListeners() {
-        this.instance.eventNode().removeListener(this.tameListener);
-        this.instance.eventNode().removeListener(this.creatureInteractListener);
-    }
-
-    private void attachHologram() {
-        final Entity hologram = new Entity(EntityType.TEXT_DISPLAY);
-        hologram.editEntityMeta(TextDisplayMeta.class, meta -> {
-            meta.setAlignment(TextDisplayMeta.Alignment.CENTER);
-            meta.setBillboardRenderConstraints(AbstractDisplayMeta.BillboardConstraints.CENTER);
-            meta.setText(Component.text(this.species.name()).append(Component.text(" | ")).append(Component.text(this.level)));
-            meta.setUseDefaultBackground(true);
-        });
-        this.addPassenger(hologram);
-    }
 
     @Override
     public @NotNull CompletableFuture<Void> setInstance(@NotNull Instance instance, @NotNull Pos spawnPosition) {
-        return super.setInstance(instance, spawnPosition).thenRun(() -> {
-            this.attachHologram();
-            this.listeners();
-        });
+        return super.setInstance(instance, spawnPosition).thenRun(this.creatureService::whenSpawned);
     }
 
     @Override
     public void kill() {
-        this.whenNoLongerExisting();
+        this.creatureService.whenNoLongerExisting();
         super.kill();
     }
 
     @Override
     public void remove() {
-        this.whenNoLongerExisting();
+        this.creatureService.whenNoLongerExisting();
         super.remove();
-    }
-
-    private void whenNoLongerExisting() {
-        this.removeListeners();
-        this.getPassengers().forEach(entity -> {
-            if (entity.getEntityType() != EntityType.TEXT_DISPLAY) {
-                return;
-            }
-            entity.remove();
-        });
     }
 
     public Species getSpecies() {
@@ -405,5 +281,13 @@ public class Creature extends EntityCreature {
 
     public List<Stat> getAdditionalStats() {
         return additionalStats;
+    }
+
+    public boolean isTamed() {
+        return this.tamed;
+    }
+
+    public void setTamed(boolean tamed) {
+        this.tamed = tamed;
     }
 }
