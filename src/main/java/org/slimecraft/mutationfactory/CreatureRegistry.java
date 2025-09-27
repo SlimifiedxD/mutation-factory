@@ -6,6 +6,7 @@ import net.minestom.server.entity.ai.EntityAIGroup;
 import net.minestom.server.entity.ai.goal.MeleeAttackGoal;
 import net.minestom.server.entity.ai.target.ClosestEntityTarget;
 import net.minestom.server.entity.ai.target.LastEntityDamagerTarget;
+import net.minestom.server.entity.attribute.Attribute;
 import net.minestom.server.utils.time.TimeUnit;
 
 import java.util.HashMap;
@@ -19,15 +20,18 @@ public class CreatureRegistry {
     private static final Random RANDOM = new Random();
 
     static {
-        CREATURES.put("bull", () -> new Creature(EntityType.COW, "Bull", RANDOM, 10, 10.5F, creature -> {
+        CREATURES.put("bull", () -> new Creature(EntityType.COW, "Bull", RANDOM, 10, 10.5F, creature -> {}, creature -> {
             final EntityAIGroup aiGroup = new EntityAIGroup();
-            aiGroup.getGoalSelectors().add(new MeleeAttackGoal(creature, 1.6, 2, TimeUnit.SECOND));
-            aiGroup.getTargetSelectors().add(new LastEntityDamagerTarget(creature, 32));
-            aiGroup.getTargetSelectors().add(new ClosestEntityTarget(creature, 32, entity -> entity instanceof Player));
+            aiGroup.getGoalSelectors().add(new MeleeAttackGoal(creature, 0.5, 2, TimeUnit.SECOND));
+            aiGroup.getTargetSelectors().add(new LastEntityDamagerTarget(creature, 5));
+            aiGroup.getTargetSelectors().add(new ClosestEntityTarget(creature, 5, entity ->
+                    entity instanceof Player || entity instanceof Creature target && !target.getSpeciesName().equals("Bull")));
 
             return aiGroup;
         }));
         CREATURES.put("sheep", () -> new Creature(EntityType.SHEEP, "Sheep", RANDOM, 30, 0F, creature -> {
+            creature.getAttribute(Attribute.MOVEMENT_SPEED).setBaseValue(1.2);
+        }, creature -> {
             return new EntityAIGroup();
         }));
     }

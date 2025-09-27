@@ -20,6 +20,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class Creature extends EntityCreature {
@@ -36,7 +37,7 @@ public class Creature extends EntityCreature {
     private EventListener<? extends @NotNull InstanceEvent> tameListener;
     private EventListener<? extends @NotNull InstanceEvent> creatureInteractListener;
 
-    public Creature(EntityType entityType, String speciesName, Random random, int breedTime, float damage, Function<Creature, EntityAIGroup> aiGroupFunction) {
+    public Creature(EntityType entityType, String speciesName, Random random, int breedTime, float damage, Consumer<Creature> configurator, Function<Creature, EntityAIGroup> aiGroupFunction) {
         super(entityType);
         this.entityType = entityType;
         this.speciesName = speciesName;
@@ -44,7 +45,9 @@ public class Creature extends EntityCreature {
         this.male = random.nextBoolean();
         this.breedTime = breedTime;
         this.damage = damage;
+        this.getAttribute(Attribute.MOVEMENT_SPEED).setBaseValue(0.5);
         this.setTag(BREEDING_TIME, this.breedTime);
+        configurator.accept(this);
 
         final EntityAIGroup aiGroup = aiGroupFunction.apply(this);
         aiGroup.getGoalSelectors().add(new RandomStrollGoal(this, 20));
@@ -172,7 +175,18 @@ public class Creature extends EntityCreature {
     }
 
     @Override
+    public void kill() {
+        this.whenNoLongerExisting();
+        super.kill();
+    }
+
+    @Override
     public void remove() {
+        this.whenNoLongerExisting();
+        super.remove();
+    }
+
+    private void whenNoLongerExisting() {
         this.removeListeners();
         this.getPassengers().forEach(entity -> {
             if (entity.getEntityType() != EntityType.TEXT_DISPLAY) {
@@ -180,7 +194,6 @@ public class Creature extends EntityCreature {
             }
             entity.remove();
         });
-        super.remove();
     }
 
     public String getSpeciesName() {
