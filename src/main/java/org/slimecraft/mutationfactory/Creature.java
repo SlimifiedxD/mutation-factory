@@ -83,9 +83,11 @@ public class Creature extends EntityCreature {
      * turning all its {@link Stat}s into attributes.
      */
     private void initializeDefaults() {
-        final EntityAIGroup aiGroup = new EntityAIGroup();
-        aiGroup.getGoalSelectors().add(new RandomStrollGoal(this, 20));
-        this.addAIGroup(aiGroup);
+        if (!this.tamed) {
+            final EntityAIGroup aiGroup = new EntityAIGroup();
+            aiGroup.getGoalSelectors().add(new RandomStrollGoal(this, 20));
+            this.addAIGroup(aiGroup);
+        }
         this.getAttribute(Attribute.MOVEMENT_SPEED).setBaseValue(this.speed.getBaseValue());
         this.getAttribute(Attribute.MAX_HEALTH).setBaseValue(this.health.getBaseValue());
         this.getAttribute(Attribute.ATTACK_DAMAGE).setBaseValue(this.melee.getBaseValue());
