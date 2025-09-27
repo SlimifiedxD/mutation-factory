@@ -213,7 +213,6 @@ public class Creature extends EntityCreature {
         }
     }
 
-
     @Override
     public @NotNull CompletableFuture<Void> setInstance(@NotNull Instance instance, @NotNull Pos spawnPosition) {
         return super.setInstance(instance, spawnPosition).thenRun(this.creatureService::whenSpawned);
