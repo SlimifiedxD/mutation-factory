@@ -17,6 +17,7 @@ public class CreatureItemStack {
     private static final Tag<@NotNull String> SPECIES_TAG = Tag.String("species");
     private static final Tag<@NotNull Integer> LEVEL_TAG = Tag.Integer("level");
     private static final Tag<@NotNull Boolean> MALE_TAG = Tag.Boolean("male");
+    private static final Tag<@NotNull Float> DAMAGE_TAG = Tag.Float("damage");
 
     private CreatureItemStack() {
     }
@@ -32,6 +33,7 @@ public class CreatureItemStack {
                 .withTag(LEVEL_TAG, creature.getLevel())
                 .withTag(MALE_TAG, creature.isMale())
                 .withTag(Creature.BREEDING_TIME, creature.getBreedTime())
+                .withTag(DAMAGE_TAG, creature.getDamage())
                 .withLore(
                         Component.text("Level: ").append(Component.text(creature.getLevel()).color(NamedTextColor.YELLOW))
                                 .decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE)
@@ -46,7 +48,7 @@ public class CreatureItemStack {
     }
 
     public static Creature toCreature(ItemStack item) {
-        return new Creature(EntityType.fromKey(item.getTag(TYPE_TAG)), item.getTag(SPECIES_TAG), item.getTag(LEVEL_TAG), item.getTag(MALE_TAG), item.getTag(Creature.BREEDING_TIME));
+        return new Creature(EntityType.fromKey(item.getTag(TYPE_TAG)), item.getTag(SPECIES_TAG), item.getTag(LEVEL_TAG), item.getTag(MALE_TAG), item.getTag(Creature.BREEDING_TIME), item.getTag(DAMAGE_TAG));
     }
 
     public static boolean isCreatureItem(ItemStack item) {

@@ -2,11 +2,15 @@ package org.slimecraft.mutationfactory;
 
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Pos;
+import net.minestom.server.entity.LivingEntity;
 import net.minestom.server.entity.Player;
+import net.minestom.server.entity.damage.Damage;
 import net.minestom.server.event.Event;
 import net.minestom.server.event.EventNode;
+import net.minestom.server.event.entity.EntityAttackEvent;
 import net.minestom.server.event.player.AsyncPlayerConfigurationEvent;
 import net.minestom.server.event.player.PlayerBlockInteractEvent;
+import net.minestom.server.event.player.PlayerSpawnEvent;
 import net.minestom.server.instance.InstanceContainer;
 import net.minestom.server.instance.LightingChunk;
 import net.minestom.server.instance.block.Block;
@@ -31,16 +35,25 @@ public class MapManager {
 
     private void setupEvents() {
         this.node.addListener(PlayerBlockInteractEvent.class, event -> {
-                    final Player player = event.getPlayer();
-                    final ItemStack item = player.getItemInMainHand();
-                    if (!CreatureItemStack.isCreatureItem(item)) {
-                        return;
-                    }
-                    final Creature creature = CreatureItemStack.toCreature(item);
+            final Player player = event.getPlayer();
+            final ItemStack item = player.getItemInMainHand();
+            if (!CreatureItemStack.isCreatureItem(item)) {
+                return;
+            }
+            final Creature creature = CreatureItemStack.toCreature(item);
 
-                    creature.setInstance(this.rootInstance, event.getBlockPosition().withY(y -> y + 1));
-                    player.setItemInMainHand(ItemStack.AIR);
-                });
+            creature.setInstance(this.rootInstance, event.getBlockPosition().withY(y -> y + 1));
+            player.setItemInMainHand(ItemStack.AIR);
+        });
+        this.node.addListener(EntityAttackEvent.class, event -> {
+            if (!(event.getEntity() instanceof final Creature creature)) {
+                return;
+            }
+            if (!(event.getTarget() instanceof final LivingEntity livingEntity)) {
+                return;
+            }
+            livingEntity.damage(Damage.fromEntity(creature, creature.getDamage()));
+        });
     }
 
     private void configureRootInstance() {
@@ -48,12 +61,17 @@ public class MapManager {
             unit.modifier().fillHeight(0, 50, Block.GRASS_BLOCK);
         });
         this.rootInstance.setChunkSupplier(LightingChunk::new);
-        MinecraftServer.getSchedulerManager().buildTask(() -> {
-            final Creature creature = CreatureRegistry.random();
-            creature.setInstance(this.rootInstance, new Pos(this.random.nextInt(0, 50), 50, this.random.nextInt(0, 50)));
-        })
-                .repeat(TaskSchedule.seconds(1))
-                .schedule();
+        this.rootInstance.eventNode().addListener(PlayerSpawnEvent.class, event -> {
+            this.rootInstance.scheduler().buildTask(() -> {
+                        final Creature creature = CreatureRegistry.random();
+                        final Pos pos = new Pos(this.random.nextInt(0, 50), 50, this.random.nextInt(0, 50));
+                        this.rootInstance.loadChunk(pos).thenRun(() -> {
+                            creature.setInstance(this.rootInstance, pos);
+                        });
+                    })
+                    .repeat(TaskSchedule.seconds(1))
+                    .schedule();
+        });
     }
 
     private void setupPlayer() {

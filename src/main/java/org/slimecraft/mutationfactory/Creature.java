@@ -3,6 +3,8 @@ package org.slimecraft.mutationfactory;
 import net.kyori.adventure.text.Component;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.*;
+import net.minestom.server.entity.ai.EntityAIGroup;
+import net.minestom.server.entity.ai.goal.RandomStrollGoal;
 import net.minestom.server.entity.attribute.Attribute;
 import net.minestom.server.entity.damage.Damage;
 import net.minestom.server.entity.metadata.display.AbstractDisplayMeta;
@@ -18,6 +20,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 
 public class Creature extends EntityCreature {
     public static final Tag<@NotNull Integer> BREEDING_TIME = Tag.Integer("breeding_time");
@@ -29,20 +32,26 @@ public class Creature extends EntityCreature {
     private boolean tamed;
     private final boolean male;
     private final int breedTime;
+    private final float damage;
     private EventListener<? extends @NotNull InstanceEvent> tameListener;
     private EventListener<? extends @NotNull InstanceEvent> creatureInteractListener;
 
-    public Creature(EntityType entityType, String speciesName, Random random, int breedTime) {
+    public Creature(EntityType entityType, String speciesName, Random random, int breedTime, float damage, Function<Creature, EntityAIGroup> aiGroupFunction) {
         super(entityType);
         this.entityType = entityType;
         this.speciesName = speciesName;
         this.level = Config.MIN_LEVEL + (int) (Math.pow(random.nextDouble(), 5) * (Config.MAX_LEVEL - Config.MIN_LEVEL + 1));
         this.male = random.nextBoolean();
         this.breedTime = breedTime;
+        this.damage = damage;
         this.setTag(BREEDING_TIME, this.breedTime);
+
+        final EntityAIGroup aiGroup = aiGroupFunction.apply(this);
+        aiGroup.getGoalSelectors().add(new RandomStrollGoal(this, 20));
+        this.addAIGroup(aiGroup);
     }
 
-    public Creature(EntityType entityType, String speciesName, int level, boolean male, int breedTime) {
+    public Creature(EntityType entityType, String speciesName, int level, boolean male, int breedTime, float damage) {
         super(entityType);
         this.entityType = entityType;
         this.speciesName = speciesName;
@@ -50,6 +59,7 @@ public class Creature extends EntityCreature {
         this.male = male;
         this.tamed = true;
         this.breedTime = breedTime;
+        this.damage = damage;
         this.setTag(BREEDING_TIME, this.breedTime);
     }
 
@@ -106,7 +116,8 @@ public class Creature extends EntityCreature {
                                                     this.speciesName,
                                                     this.level + 100,
                                                     this.male,
-                                                    this.breedTime
+                                                    this.breedTime,
+                                                    this.damage
                                                     );
                                             newCreature.getAttribute(Attribute.SCALE).setBaseValue(0.1);
                                             newCreature.setInstance(this.instance, this.position.withZ(z -> z - 2));
@@ -186,5 +197,9 @@ public class Creature extends EntityCreature {
 
     public int getBreedTime() {
         return this.breedTime;
+    }
+
+    public float getDamage() {
+        return this.damage;
     }
 }
