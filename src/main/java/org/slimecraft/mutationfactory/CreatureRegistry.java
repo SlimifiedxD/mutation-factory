@@ -19,7 +19,7 @@ public class CreatureRegistry {
                     Species.BULL,
                     new Stat(100),
                     new Stat(100),
-                    new Stat(0.7F),
+                    new Stat(0.8F),
                     creature -> {
                         final EntityAIGroup aiGroup = new EntityAIGroup();
                         aiGroup.getGoalSelectors().add(new MeleeAttackGoal(creature, 0.5, 2, TimeUnit.SECOND));
@@ -29,7 +29,7 @@ public class CreatureRegistry {
                         creature.addAIGroup(aiGroup);
                     });
 
-    private static final Supplier<Creature> SHEEP = () -> Creature
+    private static final Supplier<Creature> JUMBUCK = () -> Creature
             .wild(
                     Species.JUMBUCK,
                     new Stat(100),
@@ -40,7 +40,7 @@ public class CreatureRegistry {
 
     static {
         CREATURES.put("bull", BULL);
-        CREATURES.put("sheep", SHEEP);
+        CREATURES.put("sheep", JUMBUCK);
     }
 
     public static Creature of(String identifier) {
