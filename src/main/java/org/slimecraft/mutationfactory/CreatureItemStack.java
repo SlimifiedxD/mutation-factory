@@ -48,6 +48,9 @@ public class CreatureItemStack {
                 .withTag(WEIGHT_TAG, creature.getWeight())
                 .withTag(MELEE_TAG, creature.getMelee())
                 .withTag(SPEED_TAG, creature.getSpeed())
+                .withCustomName(Component.text(creature.getSpecies().name())
+                        .color(NamedTextColor.AQUA)
+                        .decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE))
                 .withLore(
                         Component.text("Level: ").append(Component.text(creature.getLevel()).color(NamedTextColor.YELLOW))
                                 .decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE)
