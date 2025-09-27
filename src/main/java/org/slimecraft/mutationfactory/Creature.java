@@ -78,6 +78,7 @@ public class Creature extends EntityCreature {
         this.addAIGroup(aiGroup);
         this.getAttribute(Attribute.MOVEMENT_SPEED).setBaseValue(this.speed.getBaseValue());
         this.getAttribute(Attribute.MAX_HEALTH).setBaseValue(this.health.getBaseValue());
+        this.getAttribute(Attribute.ATTACK_DAMAGE).setBaseValue(this.melee.getBaseValue());
         this.setTag(BREEDING_TIME, this.breedTime);
     }
 

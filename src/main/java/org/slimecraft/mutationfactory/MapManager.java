@@ -5,6 +5,7 @@ import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.LivingEntity;
 import net.minestom.server.entity.Player;
+import net.minestom.server.entity.attribute.Attribute;
 import net.minestom.server.entity.damage.Damage;
 import net.minestom.server.event.Event;
 import net.minestom.server.event.EventNode;
@@ -54,7 +55,7 @@ public class MapManager {
             if (!(event.getTarget() instanceof final LivingEntity livingEntity)) {
                 return;
             }
-            livingEntity.damage(Damage.fromEntity(creature, creature.getMelee().getBaseValue()));
+            livingEntity.damage(Damage.fromEntity(creature, (float) creature.getAttribute(Attribute.ATTACK_DAMAGE).getBaseValue()));
         });
         this.node.addListener(PlayerDeathEvent.class, event -> {
             final Player player = event.getPlayer();
