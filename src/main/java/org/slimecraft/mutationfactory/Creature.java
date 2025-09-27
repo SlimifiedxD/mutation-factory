@@ -37,13 +37,16 @@ public class Creature extends EntityCreature {
     private EventListener<? extends @NotNull InstanceEvent> tameListener;
     private EventListener<? extends @NotNull InstanceEvent> creatureInteractListener;
 
-    public Creature(EntityType entityType, String speciesName, @Nullable Integer level, @Nullable Boolean male, int breedTime, float damage, @Nullable Consumer<Creature> configurator) {
+    public Creature(EntityType entityType, String speciesName, @Nullable Integer level, @Nullable Boolean tamed, @Nullable Boolean male, int breedTime, float damage, @Nullable Consumer<Creature> configurator) {
         super(entityType);
         final Random random = new Random();
         this.entityType = entityType;
         this.speciesName = speciesName;
         this.level = Objects.requireNonNullElseGet(level, () ->
                 Config.MIN_LEVEL + (int) (Math.pow(random.nextDouble(), 5) * (Config.MAX_LEVEL - Config.MIN_LEVEL + 1)));
+        if (tamed != null) {
+            this.tamed = tamed;
+        }
         this.male = Objects.requireNonNullElseGet(male, random::nextBoolean);
         this.breedTime = breedTime;
         this.damage = damage;
@@ -110,6 +113,7 @@ public class Creature extends EntityCreature {
                                                     this.entityType,
                                                     this.speciesName,
                                                     this.level + 100,
+                                                    true,
                                                     this.male,
                                                     this.breedTime,
                                                     this.damage,

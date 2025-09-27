@@ -48,7 +48,7 @@ public class CreatureItemStack {
     }
 
     public static Creature toCreature(ItemStack item) {
-        return new Creature(EntityType.fromKey(item.getTag(TYPE_TAG)), item.getTag(SPECIES_TAG), item.getTag(LEVEL_TAG), item.getTag(MALE_TAG), item.getTag(Creature.BREEDING_TIME), item.getTag(DAMAGE_TAG), null);
+        return new Creature(EntityType.fromKey(item.getTag(TYPE_TAG)), item.getTag(SPECIES_TAG), item.getTag(LEVEL_TAG), true, item.getTag(MALE_TAG), item.getTag(Creature.BREEDING_TIME), item.getTag(DAMAGE_TAG), null);
     }
 
     public static boolean isCreatureItem(ItemStack item) {

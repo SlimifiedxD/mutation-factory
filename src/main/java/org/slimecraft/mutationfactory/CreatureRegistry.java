@@ -19,7 +19,7 @@ public class CreatureRegistry {
     private static final Map<String, Supplier<Creature>> CREATURES = new HashMap<>();
     private static final Random RANDOM = new Random();
 
-    private static final Supplier<Creature> BULL = () -> new Creature(EntityType.COW, "Bull", null, null, 10, 10.5F, creature -> {
+    private static final Supplier<Creature> BULL = () -> new Creature(EntityType.COW, "Bull", null, null, null, 10, 10.5F, creature -> {
         final EntityAIGroup aiGroup = new EntityAIGroup();
         aiGroup.getGoalSelectors().add(new MeleeAttackGoal(creature, 0.5, 2, TimeUnit.SECOND));
         aiGroup.getTargetSelectors().add(new LastEntityDamagerTarget(creature, 5));
@@ -28,7 +28,7 @@ public class CreatureRegistry {
         creature.addAIGroup(aiGroup);
     });
 
-    private static final Supplier<Creature> SHEEP = () -> new Creature(EntityType.SHEEP, "Sheep", null, null, 30, 0, creature -> {
+    private static final Supplier<Creature> SHEEP = () -> new Creature(EntityType.SHEEP, "Sheep", null, null, null, 30, 0, creature -> {
         creature.getAttribute(Attribute.MOVEMENT_SPEED).setBaseValue(1.2);
     });
 
