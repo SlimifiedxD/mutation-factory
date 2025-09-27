@@ -6,6 +6,6 @@ import net.minestom.server.inventory.InventoryType;
 
 public class CreatureInventory extends Inventory {
     public CreatureInventory(Creature creature) {
-        super(InventoryType.CHEST_6_ROW, Component.text(creature.getSpeciesName()));
+        super(InventoryType.CHEST_6_ROW, Component.text(creature.getSpecies().name()));
     }
 }

@@ -17,7 +17,6 @@ import net.minestom.server.instance.Instance;
 import net.minestom.server.tag.Tag;
 import net.minestom.server.timer.TaskSchedule;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -26,39 +25,151 @@ import java.util.function.Consumer;
 public class Creature extends EntityCreature {
     public static final Tag<@NotNull Integer> BREEDING_TIME = Tag.Integer("breeding_time");
 
-    private final EntityType entityType;
-    private final String speciesName;
+    private final Species species;
     private final int level;
     private int timesHit;
     private boolean tamed;
     private final boolean male;
     private final int breedTime;
-    private final float damage;
+    private final Stat health;
+    private final Stat stamina;
+    private final Stat oxygen;
+    private final Stat food;
+    private final Stat weight;
+    private final Stat melee;
+    private final Stat speed;
+    private final List<Stat> additionalStats;
     private EventListener<? extends @NotNull InstanceEvent> tameListener;
     private EventListener<? extends @NotNull InstanceEvent> creatureInteractListener;
 
-    public Creature(EntityType entityType, String speciesName, @Nullable Integer level, @Nullable Boolean tamed, @Nullable Boolean male, int breedTime, float damage, @Nullable Consumer<Creature> configurator) {
-        super(entityType);
+    /**
+     * Construct a creature from the given {@link Builder}.
+     * Private because instances are only created through the builder due to the
+     * complexity of the class.
+     */
+    private Creature(Builder builder) {
+        super(builder.species.entityType());
         final Random random = new Random();
-        this.entityType = entityType;
-        this.speciesName = speciesName;
-        this.level = Objects.requireNonNullElseGet(level, () ->
+        this.species = builder.species;
+        this.level = Objects.requireNonNullElseGet(builder.level, () ->
                 Config.MIN_LEVEL + (int) (Math.pow(random.nextDouble(), 5) * (Config.MAX_LEVEL - Config.MIN_LEVEL + 1)));
-        if (tamed != null) {
-            this.tamed = tamed;
+        if (builder.tamed != null) {
+            this.tamed = builder.tamed;
         }
-        this.male = Objects.requireNonNullElseGet(male, random::nextBoolean);
-        this.breedTime = breedTime;
-        this.damage = damage;
-        if (configurator != null) {
-            configurator.accept(this);
+        this.male = Objects.requireNonNullElseGet(builder.male, random::nextBoolean);
+        this.breedTime = builder.breedTime;
+        this.health = builder.health;
+        this.stamina = builder.stamina;
+        this.oxygen = builder.oxygen;
+        this.food = builder.food;
+        this.weight = builder.weight;
+        this.melee = builder.melee;
+        this.speed = builder.speed;
+        this.additionalStats = builder.additionalStats;
+        if (builder.configurator != null) {
+            builder.configurator.accept(this);
         }
+        this.initializeDefaults();
+    }
 
+    private void initializeDefaults() {
         final EntityAIGroup aiGroup = new EntityAIGroup();
         aiGroup.getGoalSelectors().add(new RandomStrollGoal(this, 20));
         this.addAIGroup(aiGroup);
-        this.getAttribute(Attribute.MOVEMENT_SPEED).setBaseValue(0.5);
+        this.getAttribute(Attribute.MOVEMENT_SPEED).setBaseValue(this.speed.getBaseValue());
+        this.getAttribute(Attribute.MAX_HEALTH).setBaseValue(this.health.getBaseValue());
         this.setTag(BREEDING_TIME, this.breedTime);
+    }
+
+    public static Creature wild(
+            @NotNull Species species,
+            @NotNull Stat health,
+            @NotNull Stat melee,
+            @NotNull Stat speed,
+            @NotNull Consumer<Creature> configurator
+    ) {
+        return builder(species, 0, health, Stat.EMPTY, Stat.EMPTY, Stat.EMPTY, Stat.EMPTY, melee, speed, Collections.emptyList())
+                .configurator(configurator)
+                .build();
+    }
+
+    public static Builder builder(
+            @NotNull Species species,
+            int breedTime,
+            @NotNull Stat health,
+            @NotNull Stat stamina,
+            @NotNull Stat oxygen,
+            @NotNull Stat food,
+            @NotNull Stat weight,
+            @NotNull Stat melee,
+            @NotNull Stat speed,
+            @NotNull List<Stat> additionalStats
+    ) {
+        return new Builder(species, breedTime, health, stamina, oxygen, food, weight, melee, speed, additionalStats);
+    }
+
+    public static final class Builder {
+        private final Species species;
+        private final int breedTime;
+        private Integer level;
+        private Boolean tamed;
+        private Boolean male;
+        private final Stat health;
+        private final Stat stamina;
+        private final Stat oxygen;
+        private final Stat food;
+        private final Stat weight;
+        private final Stat melee;
+        private final Stat speed;
+        private final List<Stat> additionalStats;
+        private Consumer<Creature> configurator;
+
+        public Builder(
+                @NotNull Species species,
+                int breedTime,
+                @NotNull Stat health,
+                @NotNull Stat stamina,
+                @NotNull Stat oxygen,
+                @NotNull Stat food,
+                @NotNull Stat weight,
+                @NotNull Stat melee,
+                @NotNull Stat speed,
+                @NotNull List<Stat> additionalStats) {
+            this.species = species;
+            this.breedTime = breedTime;
+            this.health = health;
+            this.stamina = stamina;
+            this.oxygen = oxygen;
+            this.food = food;
+            this.weight = weight;
+            this.melee = melee;
+            this.speed = speed;
+            this.additionalStats = additionalStats;
+        }
+
+        public Builder level(Integer level) {
+            this.level = level;
+            return this;
+        }
+
+        public Builder tamed(Boolean tamed) {
+            this.tamed = tamed;
+            return this;
+        }
+
+        public Builder male(Boolean male) {
+            this.male = male;
+            return this;
+        }
+
+        public Builder configurator(Consumer<Creature> configurator) {
+            this.configurator = configurator;
+            return this;
+        }
+
+        public Creature build() {
+            return new Creature(this);
+        }
     }
 
     private void listeners() {
@@ -109,18 +220,19 @@ public class Creature extends EntityCreature {
                                     this.setLeashHolder(creature);
                                     this.scheduler().submitTask(() -> {
                                         if (creature.getTag(BREEDING_TIME) == 0) {
-                                            final Creature newCreature = new Creature(
+                                            /*final Creature newCreature = new Creature(
                                                     this.entityType,
                                                     this.speciesName,
                                                     this.level + 100,
                                                     true,
                                                     this.male,
                                                     this.breedTime,
-                                                    this.damage,
+                                                    this.baseDamage,
                                                     null
-                                                    );
+                                            );
                                             newCreature.getAttribute(Attribute.SCALE).setBaseValue(0.1);
-                                            newCreature.setInstance(this.instance, this.position.withZ(z -> z - 2));
+                                            newCreature.setInstance(this.instance, this.position.withZ(z -> z - 2));*/
+                                            // TODO: CREATE STATIC tamed() function
                                             creature.setLeashHolder(null);
                                             this.setLeashHolder(null);
                                             return TaskSchedule.stop();
@@ -157,7 +269,7 @@ public class Creature extends EntityCreature {
         hologram.editEntityMeta(TextDisplayMeta.class, meta -> {
             meta.setAlignment(TextDisplayMeta.Alignment.CENTER);
             meta.setBillboardRenderConstraints(AbstractDisplayMeta.BillboardConstraints.CENTER);
-            meta.setText(Component.text(this.speciesName).append(Component.text(" | ")).append(Component.text(this.level)));
+            meta.setText(Component.text(this.species.name()).append(Component.text(" | ")).append(Component.text(this.level)));
             meta.setUseDefaultBackground(true);
         });
         this.addPassenger(hologram);
@@ -193,8 +305,8 @@ public class Creature extends EntityCreature {
         });
     }
 
-    public String getSpeciesName() {
-        return this.speciesName;
+    public Species getSpecies() {
+        return this.species;
     }
 
     public int getLevel() {
@@ -209,7 +321,39 @@ public class Creature extends EntityCreature {
         return this.breedTime;
     }
 
-    public float getDamage() {
-        return this.damage;
+    /**
+     * Get the health stat of this creature. The 'stat' suffix is appended
+     * because {@link EntityCreature} has the {@link EntityCreature#getHealth()} method.
+     */
+    public Stat getHealthStat() {
+        return health;
+    }
+
+    public Stat getStamina() {
+        return stamina;
+    }
+
+    public Stat getOxygen() {
+        return oxygen;
+    }
+
+    public Stat getFood() {
+        return food;
+    }
+
+    public Stat getWeight() {
+        return weight;
+    }
+
+    public Stat getMelee() {
+        return melee;
+    }
+
+    public Stat getSpeed() {
+        return speed;
+    }
+
+    public List<Stat> getAdditionalStats() {
+        return additionalStats;
     }
 }

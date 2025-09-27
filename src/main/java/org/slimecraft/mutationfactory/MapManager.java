@@ -52,7 +52,7 @@ public class MapManager {
             if (!(event.getTarget() instanceof final LivingEntity livingEntity)) {
                 return;
             }
-            livingEntity.damage(Damage.fromEntity(creature, creature.getDamage()));
+            livingEntity.damage(Damage.fromEntity(creature, creature.getMelee().getBaseValue()));
         });
     }
 
