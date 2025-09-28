@@ -11,7 +11,6 @@ import net.minestom.server.entity.PlayerHand;
 import net.minestom.server.entity.ai.EntityAIGroup;
 import net.minestom.server.entity.ai.goal.MeleeAttackGoal;
 import net.minestom.server.entity.ai.target.ClosestEntityTarget;
-import net.minestom.server.entity.ai.target.LastEntityDamagerTarget;
 import net.minestom.server.entity.attribute.Attribute;
 import net.minestom.server.entity.damage.Damage;
 import net.minestom.server.event.Event;
@@ -23,12 +22,11 @@ import net.minestom.server.instance.LightingChunk;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.scoreboard.Team;
-import net.minestom.server.scoreboard.TeamManager;
 import net.minestom.server.timer.TaskSchedule;
 import net.minestom.server.utils.time.TimeUnit;
 
 import java.util.Random;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class MapManager {
     private final EventNode<Event> node;
@@ -57,6 +55,11 @@ public class MapManager {
 
             player.addCreatureInSameInstance(creature);
             player.setItemInMainHand(ItemStack.AIR);
+            creature.getAIGroups().forEach(group -> {
+                group.getTargetSelectors().add(new ClosestEntityTarget(creature, 75, entity -> {
+                    return player.getTarget().isPresent() && player.getTarget().get().equals(entity);
+                }));
+            });
         });
         this.node.addListener(EntityAttackEvent.class, event -> {
             if (!(event.getEntity() instanceof final Creature creature)) {
@@ -103,7 +106,9 @@ public class MapManager {
             final Team enemy = MinecraftServer.getTeamManager().createTeam("enemy");
             enemy.setTeamColor(NamedTextColor.RED);
             enemy.updateTeamColor(NamedTextColor.RED);
+            AtomicInteger checks = new AtomicInteger();
             this.rootInstance.scheduler().buildTask(() -> {
+                        System.out.println("fired");
                         if (!player.isSneaking()) {
                             player.setTarget(null);
                             player.getAttribute(Attribute.ENTITY_INTERACTION_RANGE).setBaseValue(interactionRange);
@@ -117,11 +122,14 @@ public class MapManager {
                         });
 
                         if (lookingAt == null) {
-                            player.setTarget(null);
-                            player.getAttribute(Attribute.ENTITY_INTERACTION_RANGE).setBaseValue(interactionRange);
+                            if (checks.getAndIncrement() == 10) {
+                                player.setTarget(null);
+                                player.getAttribute(Attribute.ENTITY_INTERACTION_RANGE).setBaseValue(interactionRange);
+                            }
                             return;
                         }
 
+                        System.out.println("setting new target");
                         final Entity lastLookingAt = player.getTarget().orElse(null);
 
                         if (lastLookingAt != null && lastLookingAt != lookingAt && lastLookingAt.isGlowing()) {
@@ -137,23 +145,8 @@ public class MapManager {
                         player.getAttribute(Attribute.ENTITY_INTERACTION_RANGE).setBaseValue(10000);
                         System.out.println(player.getTarget());
                     })
-                    .repeat(TaskSchedule.seconds(1))
+                    .repeat(TaskSchedule.seconds(1 ))
                     .schedule();
-        });
-        this.rootInstance.eventNode().addListener(PlayerEntityInteractEvent.class, event -> {
-            if (event.getHand() == PlayerHand.OFF) return;
-            final MutationFactoryPlayer player = (MutationFactoryPlayer) event.getPlayer();
-
-            player.getCreaturesInSameInstance().forEach(creature -> {
-                creature.initializeAi();
-                final EntityAIGroup aiGroup = new EntityAIGroup();
-                aiGroup.getGoalSelectors().add(new MeleeAttackGoal(creature, 0.5, 10, TimeUnit.SERVER_TICK));
-                aiGroup.getTargetSelectors().add(new LastEntityDamagerTarget(creature, 15));
-                aiGroup.getTargetSelectors().add(new ClosestEntityTarget(creature, 15, entity -> {
-                    return player.getTarget().isPresent() && player.getTarget().get() == entity;
-                }));
-                creature.addAIGroup(aiGroup);
-            });
         });
     }
 

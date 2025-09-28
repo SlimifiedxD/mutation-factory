@@ -3,10 +3,13 @@ package org.slimecraft.mutationfactory;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.*;
 import net.minestom.server.entity.ai.EntityAIGroup;
+import net.minestom.server.entity.ai.goal.MeleeAttackGoal;
 import net.minestom.server.entity.ai.goal.RandomStrollGoal;
+import net.minestom.server.entity.ai.target.ClosestEntityTarget;
 import net.minestom.server.entity.attribute.Attribute;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.tag.Tag;
+import net.minestom.server.utils.time.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,6 +41,7 @@ public class Creature extends EntityCreature {
     private final Stat speed;
     private final List<Stat> additionalStats;
     private final CreatureService creatureService;
+    private final EntityAIGroup defaultAiGroup;
 
     /**
      * Construct a creature from the given {@link Builder}.
@@ -67,6 +71,7 @@ public class Creature extends EntityCreature {
         if (builder.configurator != null) {
             builder.configurator.accept(this);
         }
+        this.defaultAiGroup = new EntityAIGroup();
         this.initializeDefaults();
     }
 
@@ -75,17 +80,17 @@ public class Creature extends EntityCreature {
      * turning all its {@link Stat}s into attributes.
      */
     private void initializeDefaults() {
-        if (!this.tamed) {
-            this.initializeAi();
-        }
+        this.initializeAi();
         this.initializeAttributes();
         this.setTag(BREEDING_TIME_REMAINING, this.breedTime);
     }
 
     public void initializeAi() {
-        final EntityAIGroup aiGroup = new EntityAIGroup();
-        aiGroup.getGoalSelectors().add(new RandomStrollGoal(this, 20));
-        this.addAIGroup(aiGroup);
+        if (!this.tamed) {
+            this.defaultAiGroup.getGoalSelectors().add(new RandomStrollGoal(this, 20));
+        }
+        this.defaultAiGroup.getGoalSelectors().add(new MeleeAttackGoal(this, 0.5, 10, TimeUnit.SERVER_TICK));
+        this.addAIGroup(defaultAiGroup);
     }
 
     public void initializeAttributes() {
