@@ -75,14 +75,15 @@ public class CreatureService {
                     }
                 })
                 .filter(event ->
-                        event.getTarget() == this.creature && event.getEntity() instanceof Player)
+                        event.getTarget() == this.creature && event.getEntity() instanceof MutationFactoryPlayer player && (player.getTarget().isEmpty()))
                 .build();
 
         this.creatureInteractListener = EventListener.builder(PlayerEntityInteractEvent.class)
                 .handler(event -> {
-                    final Player player = event.getPlayer();
+                    final MutationFactoryPlayer player = (MutationFactoryPlayer) event.getPlayer();
                     if (player.isSneaking()) {
                         player.getInventory().addItemStack(CreatureItemStack.toItem(this.creature));
+                        player.removeCreatureInSameInstance(creature);
                         this.creature.remove();
                     } else {
                         if (this.creature.getLeashHolder() != null) {

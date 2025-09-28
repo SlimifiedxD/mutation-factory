@@ -20,7 +20,7 @@ public class CreatureRegistry {
                     30,
                     new Stat(100),
                     new Stat(100),
-                    new Stat(0.8F),
+                    new Stat(0.4F),
                     creature -> {
                         final EntityAIGroup aiGroup = new EntityAIGroup();
                         aiGroup.getGoalSelectors().add(new MeleeAttackGoal(creature, 0.5, 2, TimeUnit.SECOND));
@@ -36,7 +36,7 @@ public class CreatureRegistry {
                     10,
                     new Stat(100),
                     new Stat(100),
-                    new Stat(1.2F),
+                    new Stat(0.6F),
                     creature -> {}
             );
 
@@ -46,7 +46,7 @@ public class CreatureRegistry {
                     60,
                     new Stat(20),
                     new Stat(20),
-                    new Stat(1F),
+                    new Stat(0.5F),
                     creature -> {
                         final EntityAIGroup aiGroup = new EntityAIGroup();
                         aiGroup.getGoalSelectors().add(new MeleeAttackGoal(creature, 0.5, 10, TimeUnit.SERVER_TICK));

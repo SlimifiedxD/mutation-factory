@@ -75,14 +75,22 @@ public class Creature extends EntityCreature {
      */
     private void initializeDefaults() {
         if (!this.tamed) {
-            final EntityAIGroup aiGroup = new EntityAIGroup();
-            aiGroup.getGoalSelectors().add(new RandomStrollGoal(this, 20));
-            this.addAIGroup(aiGroup);
+            this.initializeAi();
         }
+        this.initializeAttributes();
+        this.setTag(BREEDING_TIME_REMAINING, this.breedTime);
+    }
+
+    public void initializeAi() {
+        final EntityAIGroup aiGroup = new EntityAIGroup();
+        aiGroup.getGoalSelectors().add(new RandomStrollGoal(this, 20));
+        this.addAIGroup(aiGroup);
+    }
+
+    public void initializeAttributes() {
         this.getAttribute(Attribute.MOVEMENT_SPEED).setBaseValue(this.speed.getBaseValue());
         this.getAttribute(Attribute.MAX_HEALTH).setBaseValue(this.health.getBaseValue());
         this.getAttribute(Attribute.ATTACK_DAMAGE).setBaseValue(this.melee.getBaseValue());
-        this.setTag(BREEDING_TIME_REMAINING, this.breedTime);
     }
 
     /**
@@ -285,5 +293,17 @@ public class Creature extends EntityCreature {
 
     public void setTamed(boolean tamed) {
         this.tamed = tamed;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        Creature creature = (Creature) o;
+        return level == creature.level && timesHit == creature.timesHit && tamed == creature.tamed && male == creature.male && breedTime == creature.breedTime && Objects.equals(species, creature.species) && Objects.equals(health, creature.health) && Objects.equals(stamina, creature.stamina) && Objects.equals(oxygen, creature.oxygen) && Objects.equals(food, creature.food) && Objects.equals(weight, creature.weight) && Objects.equals(melee, creature.melee) && Objects.equals(speed, creature.speed) && Objects.equals(additionalStats, creature.additionalStats) && Objects.equals(creatureService, creature.creatureService);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(species, level, timesHit, tamed, male, breedTime, health, stamina, oxygen, food, weight, melee, speed, additionalStats, creatureService);
     }
 }
