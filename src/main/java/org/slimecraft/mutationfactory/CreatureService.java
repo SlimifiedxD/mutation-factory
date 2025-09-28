@@ -16,6 +16,7 @@ import net.minestom.server.event.trait.InstanceEvent;
 import net.minestom.server.timer.TaskSchedule;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Random;
 import java.util.Set;
 
 public class CreatureService {
@@ -23,9 +24,11 @@ public class CreatureService {
     private EventListener<? extends @NotNull InstanceEvent> tameListener;
     private EventListener<? extends @NotNull InstanceEvent> creatureInteractListener;
     private int timesHit;
+    private final Random random;
 
     public CreatureService(Creature creature) {
         this.creature = creature;
+        this.random = new Random();
     }
 
     public void whenSpawned() {
@@ -104,10 +107,16 @@ public class CreatureService {
                                     this.creature.setLeashHolder(creature);
                                     this.creature.scheduler().submitTask(() -> {
                                         if (creature.getTag(Creature.BREEDING_TIME_REMAINING) == 0) {
+                                            int level;
+                                            if (this.creature.getLevel() < 100 || creature.getLevel() < 100) {
+                                                level = (int) Math.round((this.creature.getLevel() + creature.getLevel() + 0.0) / 2 + 5);
+                                            } else {
+                                                level = (int) Math.round((this.creature.getLevel() + creature.getLevel() + 0.0) / 2 * this.random.nextDouble(0.95, 1.05));
+                                            }
                                             final Creature baby = Creature.tamed(
                                                     this.creature.getSpecies(),
                                                     this.creature.getBreedTime(),
-                                                    this.creature.getLevel() + 100,
+                                                    level,
                                                     this.creature.isMale(),
                                                     this.creature.getHealthStat(),
                                                     this.creature.getStamina(),

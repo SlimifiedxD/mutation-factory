@@ -1,5 +1,6 @@
 package org.slimecraft.mutationfactory;
 
+import net.minestom.server.entity.EntityType;
 import net.minestom.server.entity.Player;
 import net.minestom.server.entity.ai.EntityAIGroup;
 import net.minestom.server.entity.ai.goal.MeleeAttackGoal;
@@ -16,11 +17,15 @@ public class CreatureRegistry {
 
     private static final Supplier<Creature> BULL = () -> Creature
             .wild(
-                    Species.BULL,
+                    new Species(EntityType.COW, "Bull"),
                     30,
-                    new Stat(100),
-                    new Stat(100),
-                    new Stat(0.4F),
+                    new Stat(100, 100F),
+                    new Stat(100, 300F),
+                    Stat.EMPTY,
+                    Stat.EMPTY,
+                    Stat.EMPTY,
+                    new Stat(20, 20F),
+                    new Stat(0.4F, 1),
                     creature -> {
                         final EntityAIGroup aiGroup = new EntityAIGroup();
                         aiGroup.getGoalSelectors().add(new MeleeAttackGoal(creature, 0.5, 2, TimeUnit.SECOND));
@@ -32,21 +37,28 @@ public class CreatureRegistry {
 
     private static final Supplier<Creature> JUMBUCK = () -> Creature
             .wild(
-                    Species.JUMBUCK,
+                    new Species(EntityType.SHEEP, "Jumbuck"),
                     10,
-                    new Stat(100),
-                    new Stat(100),
-                    new Stat(0.6F),
-                    creature -> {}
+                    new Stat(20, 50F),
+                    new Stat(20, 150F),
+                    Stat.EMPTY,
+                    Stat.EMPTY,
+                    Stat.EMPTY,
+                    new Stat(20, 13F),
+                    new Stat(0.6F, 1)
             );
 
     private static final Supplier<Creature> SCAVENGER = () -> Creature
             .wild(
-                    Species.SCAVENGER,
+                    new Species(EntityType.PHANTOM, "Scavenger"),
                     60,
-                    new Stat(20),
-                    new Stat(20),
-                    new Stat(0.5F),
+                    new Stat(20, 50F),
+                    new Stat(20, 150F),
+                    Stat.EMPTY,
+                    Stat.EMPTY,
+                    Stat.EMPTY,
+                    new Stat(20, 13F),
+                    new Stat(0.7F, 1),
                     creature -> {
                         final EntityAIGroup aiGroup = new EntityAIGroup();
                         aiGroup.getGoalSelectors().add(new MeleeAttackGoal(creature, 0.5, 10, TimeUnit.SERVER_TICK));

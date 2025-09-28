@@ -8,6 +8,7 @@ import net.minestom.server.entity.attribute.Attribute;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.tag.Tag;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -49,7 +50,7 @@ public class Creature extends EntityCreature {
         this.creatureService = new CreatureService(this);
         this.species = builder.species;
         this.level = Objects.requireNonNullElseGet(builder.level, () ->
-                Config.MIN_LEVEL + (int) (Math.pow(random.nextDouble(), 5) * (Config.MAX_LEVEL - Config.MIN_LEVEL + 1)));
+                Config.MIN_LEVEL + (int) (Math.pow(random.nextDouble(), 5) * Config.MAX_LEVEL));
         if (builder.tamed != null) {
             this.tamed = builder.tamed;
         }
@@ -94,20 +95,44 @@ public class Creature extends EntityCreature {
     }
 
     /**
-     * Construct a wild creature. Many stats/additional stats are omitted because a wild creature cannot use stats
-     * other than health, melee and speed. A configurator is required, but can be empty; it is only for additional behaviour.
+     * Construct a wild {@link Creature}. Though wild creatures cannot use most stats,
+     * all stats are required because wild creatures are the basis for creating tamed creatures;
+     * the stats inputted here will be the base stats of the tamed creature with no upgrades and no
+     * breeding levels.
      */
     public static Creature wild(
             @NotNull Species species,
             int breedTime,
             @NotNull Stat health,
+            @NotNull Stat stamina,
+            @NotNull Stat oxygen,
+            @NotNull Stat food,
+            @NotNull Stat weight,
             @NotNull Stat melee,
             @NotNull Stat speed,
-            @NotNull Consumer<Creature> configurator
+            @Nullable Consumer<Creature> configurator
     ) {
-        return builder(species, breedTime, health, Stat.EMPTY, Stat.EMPTY, Stat.EMPTY, Stat.EMPTY, melee, speed, Collections.emptyList())
+        return builder(species, breedTime, health, stamina, oxygen, food, weight, melee, speed, Collections.emptyList())
                 .configurator(configurator)
                 .build();
+    }
+
+    /**
+     * Construct a wild {@link Creature} without a configurator; refer to {@link Creature#wild(Species, int, Stat, Stat, Stat, Stat, Stat, Stat, Stat, Consumer)}
+     * for more detail.
+     */
+    public static Creature wild(
+            @NotNull Species species,
+            int breedTime,
+            @NotNull Stat health,
+            @NotNull Stat stamina,
+            @NotNull Stat oxygen,
+            @NotNull Stat food,
+            @NotNull Stat weight,
+            @NotNull Stat melee,
+            @NotNull Stat speed
+    ) {
+        return wild(species, breedTime, health, stamina, oxygen, food, weight, melee, speed, null);
     }
 
     public static Creature tamed(

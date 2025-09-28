@@ -19,13 +19,14 @@ public class CreatureItemStack {
     private static final Tag<@NotNull String> SPECIES_NAME_TAG = Tag.String("species");
     private static final Tag<@NotNull Integer> LEVEL_TAG = Tag.Integer("level");
     private static final Tag<@NotNull Boolean> MALE_TAG = Tag.Boolean("male");
-    private static final Tag<@NotNull Stat> HEALTH_TAG = Tag.Float("health").map(Stat::new, Stat::getCurrentValue);
-    private static final Tag<@NotNull Stat> STAMINA_TAG = Tag.Float("stamina").map(Stat::new, Stat::getCurrentValue);
-    private static final Tag<@NotNull Stat> OXYGEN_TAG = Tag.Float("oxygen").map(Stat::new, Stat::getCurrentValue);
-    private static final Tag<@NotNull Stat> FOOD_TAG = Tag.Float("food").map(Stat::new, Stat::getCurrentValue);
-    private static final Tag<@NotNull Stat> WEIGHT_TAG = Tag.Float("weight").map(Stat::new, Stat::getCurrentValue);
-    private static final Tag<@NotNull Stat> MELEE_TAG = Tag.Float("melee").map(Stat::new, Stat::getCurrentValue);
-    private static final Tag<@NotNull Stat> SPEED_TAG = Tag.Float("speed").map(Stat::new, Stat::getCurrentValue);
+    // TODO: FIX THIS DISCUSTING SHIT. IS THERE A BETTER WAY? STATS DO NOT SERIALIZE CORRECTLY.
+    private static final Tag<@NotNull Stat> HEALTH_TAG = Tag.Float("health").map(f -> new Stat(f, 0), Stat::getCurrentValue);
+    private static final Tag<@NotNull Stat> STAMINA_TAG = Tag.Float("stamina").map(f -> new Stat(f, 0), Stat::getCurrentValue);
+    private static final Tag<@NotNull Stat> OXYGEN_TAG = Tag.Float("oxygen").map(f -> new Stat(f, 0), Stat::getCurrentValue);
+    private static final Tag<@NotNull Stat> FOOD_TAG = Tag.Float("food").map(f -> new Stat(f, 0), Stat::getCurrentValue);
+    private static final Tag<@NotNull Stat> WEIGHT_TAG = Tag.Float("weight").map(f -> new Stat(f, 0), Stat::getCurrentValue);
+    private static final Tag<@NotNull Stat> MELEE_TAG = Tag.Float("melee").map(f -> new Stat(f, 0), Stat::getCurrentValue);
+    private static final Tag<@NotNull Stat> SPEED_TAG = Tag.Float("speed").map(f -> new Stat(f, 0), Stat::getCurrentValue);
 
     private CreatureItemStack() {
     }
