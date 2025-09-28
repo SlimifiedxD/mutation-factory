@@ -7,6 +7,7 @@ import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.LivingEntity;
 import net.minestom.server.entity.Player;
+import net.minestom.server.entity.PlayerHand;
 import net.minestom.server.entity.ai.EntityAIGroup;
 import net.minestom.server.entity.ai.goal.MeleeAttackGoal;
 import net.minestom.server.entity.ai.target.ClosestEntityTarget;
@@ -104,6 +105,8 @@ public class MapManager {
             enemy.updateTeamColor(NamedTextColor.RED);
             this.rootInstance.scheduler().buildTask(() -> {
                         if (!player.isSneaking()) {
+                            player.setTarget(null);
+                            player.getAttribute(Attribute.ENTITY_INTERACTION_RANGE).setBaseValue(interactionRange);
                             return;
                         }
                         final LivingEntity lookingAt = (LivingEntity) player.getLineOfSightEntity(75, entity -> {
@@ -138,6 +141,7 @@ public class MapManager {
                     .schedule();
         });
         this.rootInstance.eventNode().addListener(PlayerEntityInteractEvent.class, event -> {
+            if (event.getHand() == PlayerHand.OFF) return;
             final MutationFactoryPlayer player = (MutationFactoryPlayer) event.getPlayer();
 
             player.getCreaturesInSameInstance().forEach(creature -> {
